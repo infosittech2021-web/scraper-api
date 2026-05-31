@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: scraper-api
+    runtime: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2
+    envVars:
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: "0"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+    plan: free
+    healthCheckPath: /health
