@@ -32,19 +32,24 @@ def extract_google_maps(category, location, page_num=1):
     print(f"[Scraper] Maps URL: {url}")
 
     leads = []
+    debug_info = []
 
     # Strategy 1: Playwright (headless browser) — most reliable
     try:
         leads = _scrape_with_playwright(url)
         print(f"[Scraper] Playwright: {len(leads)} leads")
     except Exception as e:
-        print(f"[Scraper] Playwright failed: {e}")
+        err_msg = f"Playwright error: {str(e)}"
+        print(f"[Scraper] {err_msg}")
+        debug_info.append(err_msg)
         # Strategy 2: HTTP fallback (works when Google serves SSR content)
         try:
             leads = _scrape_with_http(url, query)
             print(f"[Scraper] HTTP fallback: {len(leads)} leads")
         except Exception as e2:
-            print(f"[Scraper] HTTP fallback also failed: {e2}")
+            err_msg2 = f"HTTP fallback error: {str(e2)}"
+            print(f"[Scraper] {err_msg2}")
+            debug_info.append(err_msg2)
 
     # Deduplicate by name
     unique, seen = [], set()
@@ -62,6 +67,7 @@ def extract_google_maps(category, location, page_num=1):
         'has_next': False,
         'total': len(unique),
         'source_url': url,
+        'debug': debug_info
     }
 
 
