@@ -1,6 +1,15 @@
 import os
+import subprocess
+
 # Must be set before importing Playwright
 os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', '0')
+
+# Force install Chromium every time the app starts on Render
+# This guarantees the browser binary is always available, even on the free tier
+print("Checking/Installing Playwright Chromium...")
+subprocess.run(["playwright", "install", "chromium"], check=False)
+subprocess.run(["playwright", "install-deps", "chromium"], check=False)
+print("Playwright check complete.")
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -15,7 +24,6 @@ CORS(app)
 @app.route('/health', methods=['GET'])
 def health():
     """Health-check endpoint for monitoring."""
-    # Quick check if Playwright/Chromium is available
     pw_status = 'unknown'
     try:
         from playwright.sync_api import sync_playwright
@@ -26,7 +34,7 @@ def health():
     return jsonify({
         'status': 'ok',
         'service': 'scraper-api',
-        'version': '2.1.0',
+        'version': '2.2.0',
         'playwright': pw_status,
     })
 
@@ -56,11 +64,11 @@ def extract():
                 'message': f'Source "{source}" not implemented yet.',
             }), 400
 
-        # If 0 leads found and we have debug info, show it to the user
+        # If 0 leads and Playwright failed, show the error alert
         if result['total'] == 0 and result.get('debug'):
             return jsonify({
                 'status': 'error',
-                'message': f"Scraper error on Render: {result['debug'][0]}"
+                'message': f"Render Scraper Error: {result['debug'][0]}"
             })
 
         return jsonify({
