@@ -56,6 +56,13 @@ def extract():
                 'message': f'Source "{source}" not implemented yet.',
             }), 400
 
+        # If 0 leads found and we have debug info, show it to the user
+        if result['total'] == 0 and result.get('debug'):
+            return jsonify({
+                'status': 'error',
+                'message': f"Scraper error on Render: {result['debug'][0]}"
+            })
+
         return jsonify({
             'status': 'success',
             **result,
